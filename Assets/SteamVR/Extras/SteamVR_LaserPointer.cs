@@ -16,7 +16,6 @@ public delegate void PointerEventHandler(object sender, PointerEventArgs e);
 public class SteamVR_LaserPointer : MonoBehaviour
 {
     public bool active = true;
-    public Color color;
     public float thickness = 0.002f;
     public GameObject holder;
     public GameObject pointer;
@@ -25,12 +24,19 @@ public class SteamVR_LaserPointer : MonoBehaviour
     public Transform reference;
     public event PointerEventHandler PointerIn;
     public event PointerEventHandler PointerOut;
+    public Material LaserNormal;
+    public Material LaserHit;
+    public Material LaserNotHit;
+    public Collider circle;
 
     Transform previousContact = null;
 
 	// Use this for initialization
 	void Start ()
     {
+
+        circle.gameObject.SetActive(false);
+
         holder = new GameObject();
         holder.transform.parent = this.transform;
         holder.transform.localPosition = Vector3.zero;
@@ -58,9 +64,8 @@ public class SteamVR_LaserPointer : MonoBehaviour
                 Object.Destroy(collider);
             }
         }
-        Material newMaterial = new Material(Shader.Find("Unlit/Color"));
-        newMaterial.SetColor("_Color", color);
-        pointer.GetComponent<MeshRenderer>().material = newMaterial;
+       
+        pointer.GetComponent<MeshRenderer>().material = LaserNormal;
 	}
 
     public virtual void OnPointerIn(PointerEventArgs e)
@@ -119,23 +124,46 @@ public class SteamVR_LaserPointer : MonoBehaviour
             OnPointerIn(argsIn);
             previousContact = hit.transform;
         }
+
+        /*if (bHit) {
+            
+        }*/
+
         if(!bHit)
         {
             previousContact = null;
+            circle.GetComponent<Collider>().gameObject.SetActive(false);
         }
         if (bHit && hit.distance < 100f)
         {
             dist = hit.distance;
+            
+        }
+        
+        
+
+        if (bHit && controller.triggerPressed)
+        {
+            if (hit.collider.tag != "Plane") {
+                //hit.transform.position += new Vector3(1, 1, 1);
+                circle.gameObject.SetActive(true);
+                circle.transform.position = hit.point;
+                pointer.GetComponent<MeshRenderer>().material = LaserHit;
+            }
         }
 
-        if (controller != null && controller.triggerPressed)
-        {
-            pointer.transform.localScale = new Vector3(thickness * 5f, thickness * 5f, dist);
-        }
+        else if (!bHit && controller.triggerPressed)
+            {
+                pointer.GetComponent<MeshRenderer>().material = LaserNotHit;
+                //pointer.transform.localScale = new Vector3(thickness * 5f, thickness * 5f, dist);
+         }
+
         else
         {
             pointer.transform.localScale = new Vector3(thickness, thickness, dist);
+            pointer.GetComponent<MeshRenderer>().material = LaserNormal;
         }
         pointer.transform.localPosition = new Vector3(0f, 0f, dist/2f);
+        
     }
 }
