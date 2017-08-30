@@ -16,6 +16,7 @@ public class SteamVR_TrackedController : MonoBehaviour
 	public uint controllerIndex;
 	public VRControllerState_t controllerState;
 	public bool triggerPressed = false;
+    public bool triggerReleased = false;
 	public bool steamPressed = false;
 	public bool menuPressed = false;
 	public bool padPressed = false;
@@ -136,6 +137,7 @@ public class SteamVR_TrackedController : MonoBehaviour
 			ulong trigger = controllerState.ulButtonPressed & (1UL << ((int)EVRButtonId.k_EButton_SteamVR_Trigger));
 			if (trigger > 0L && !triggerPressed)
 			{
+                triggerReleased = false;
 				triggerPressed = true;
 				ClickedEventArgs e;
 				e.controllerIndex = controllerIndex;
@@ -148,6 +150,7 @@ public class SteamVR_TrackedController : MonoBehaviour
 			else if (trigger == 0L && triggerPressed)
 			{
 				triggerPressed = false;
+                triggerReleased = true;
 				ClickedEventArgs e;
 				e.controllerIndex = controllerIndex;
 				e.flags = (uint)controllerState.ulButtonPressed;
